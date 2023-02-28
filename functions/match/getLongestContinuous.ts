@@ -1,7 +1,19 @@
-const { timeStampToSeconds } = require("../utils/timeStampToSeconds");
+import { timeStampToSeconds } from "../utils/timeStampToSeconds";
 
-const getLongestContinuous = (song) => {
-  const noIntroOrOutro = (item) => item !== "intro" && item !== "outro";
+interface Section {
+  sectionName: string;
+  start: string;
+}
+
+interface SongObj {
+  fields: {
+    sections: Section[];
+    expectedSections: string;
+  };
+}
+
+export const getLongestContinuous = (song: SongObj) => {
+  const noIntroOrOutro = (item: string) => item !== "intro" && item !== "outro";
 
   const songExpected = song.fields.expectedSections
     ? song.fields.expectedSections.split(", ")
@@ -42,17 +54,17 @@ const getLongestContinuous = (song) => {
 
   const songLongestContinous = allSongContinousSections.find(
     (arr) => arr.length === Math.max(...allSongContinuousLengths)
-  );
+  ) as string[];
 
   const songContinousFirstSection = song.fields.sections.find(
     (section) => section.sectionName === songLongestContinous[0]
-  );
+  ) as Section;
 
   const songContinousLastSection = song.fields.sections.find(
     (section) =>
       section.sectionName ===
       songLongestContinous[songLongestContinous.length - 1]
-  );
+  ) as Section;
 
   if (songContinousLastSection.start && songContinousFirstSection.start) {
     const songLongestContinuousSectionDuration =
@@ -70,5 +82,3 @@ const getLongestContinuous = (song) => {
     };
   }
 };
-
-module.exports = { getLongestContinuous };

@@ -1,6 +1,6 @@
-const { format, startOfWeek } = require("date-fns");
+import { format, startOfWeek } from "date-fns";
 
-const getMostRecentSaturday = () => {
+export const getMostRecentSaturday = () => {
   const upcomingSaturday = format(
     startOfWeek(new Date(), {
       weekStartsOn: 6,
@@ -10,5 +10,3 @@ const getMostRecentSaturday = () => {
 
   return upcomingSaturday;
 };
-
-module.exports = { getMostRecentSaturday };

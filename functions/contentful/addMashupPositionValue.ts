@@ -1,14 +1,17 @@
-const contentfulManagement = require("contentful-management");
-require("dotenv").config();
+import contentfulManagement from "contentful-management";
+import "dotenv/config";
 
-const addMashupPositionValue = async (mixChartID, currentIndex) => {
+export const addMashupPositionValue = async (
+  mixChartID: string,
+  currentIndex: number
+) => {
   // Access to Contentful Management API
   const managementClient = contentfulManagement.createClient({
-    accessToken: process.env.CONTENT_MANAGEMENT_TOKEN,
+    accessToken: process.env.CONTENT_MANAGEMENT_TOKEN as string,
   });
 
   return await managementClient
-    .getSpace(process.env.CONTENTFUL_SPACE_ID)
+    .getSpace(process.env.CONTENTFUL_SPACE_ID as string)
     .then((space) => {
       space.getEnvironment("master").then((environment) => {
         environment.getEntry(mixChartID).then((entry) => {
@@ -25,5 +28,3 @@ const addMashupPositionValue = async (mixChartID, currentIndex) => {
       });
     });
 };
-
-module.exports = { addMashupPositionValue };

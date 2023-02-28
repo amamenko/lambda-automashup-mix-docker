@@ -1,4 +1,4 @@
-const {
+import {
   introSections,
   verseSections,
   refrainSections,
@@ -7,11 +7,12 @@ const {
   postChorusSections,
   bridgeSections,
   outroSections,
-} = require("../arrays/songSectionsArr");
-const removeAccents = require("remove-accents");
-const { getClosestBeatArr } = require("./getClosestBeatArr");
+} from "../arrays/songSectionsArr";
+import removeAccents from "remove-accents";
+import { getClosestBeatArr } from "./getClosestBeatArr";
+import { SongObj } from "./normalizeInputsAndMix";
 
-const createComplexFilter = (instrumentals, vox) => {
+export const createComplexFilter = (instrumentals: SongObj, vox: SongObj) => {
   const vocalsKeyScale = vox.keyScaleFactor;
   const vocalsTempoScale = vox.tempoScaleFactor;
 
@@ -26,6 +27,7 @@ const createComplexFilter = (instrumentals, vox) => {
     }
   } else {
     vox.fields.beats = vox.fields.beats
+      .toString()
       .split(", ")
       .map((beat) => (1 / vocalsTempoScale) * Number(beat));
   }
@@ -52,14 +54,16 @@ const createComplexFilter = (instrumentals, vox) => {
     getClosestBeatArr,
     vox.duration ? vox : vox.fields
   );
-  const voxNameSections = voxSections.map((item) => item.sectionName);
+  const voxNameSections = voxSections.map(
+    (item: { sectionName: string }) => item.sectionName
+  );
 
   let matchedVocalSections = instrumentalSections.map((instrumentalSection) => {
     if (instrumentalSection) {
       const name = instrumentalSection.sectionName.split(" ")[0];
       const number = instrumentalSection.sectionName.split(" ")[1];
 
-      function closestMatch(section) {
+      function closestMatch(section: { sectionName: string }) {
         const generalSection = JSON.parse(this);
         const voxSectionName = section.sectionName.split(" ")[0];
         const voxSectionNumber = section.sectionName.split(" ")[1];
@@ -142,9 +146,10 @@ const createComplexFilter = (instrumentals, vox) => {
     }
   });
 
-  const trimmedSections = matchedVocalSections.map((section, i, arr) => {
+  const trimmedSections = matchedVocalSections.map((section: any, i, arr) => {
     const currentIndex = vocalSections.findIndex(
-      (item) => item.sectionName === section.sectionName
+      (item: { sectionName: string }) =>
+        item.sectionName === section.sectionName
     );
     const nextSection = vocalSections[currentIndex + 1];
 
@@ -204,9 +209,9 @@ const createComplexFilter = (instrumentals, vox) => {
         : Math.max(Math.round(maxDuration / duration) - 1, 1);
 
     const voxBeats = vox.beats ? vox.beats : vox.fields.beats;
-    const currentBeatsIndex = voxBeats.findIndex(
-      (beat) => beat === section.start
-    );
+    const currentBeatsIndex = Array.isArray(voxBeats)
+      ? voxBeats.findIndex((beat: number) => beat === section.start)
+      : -1;
     const eightMeasuresAfterStart = voxBeats[currentBeatsIndex + 32];
     const fourMeasuresAfterStart = voxBeats[currentBeatsIndex + 16];
 
@@ -214,18 +219,18 @@ const createComplexFilter = (instrumentals, vox) => {
 
     if (eightMeasuresAfterStart) {
       if (eightMeasuresAfterStart >= section.start) {
-        loopTime = eightMeasuresAfterStart - section.start;
+        loopTime = Number(eightMeasuresAfterStart) - section.start;
       } else {
         if (fourMeasuresAfterStart) {
           if (fourMeasuresAfterStart >= section.start) {
-            loopTime = fourMeasuresAfterStart - section.start;
+            loopTime = Number(fourMeasuresAfterStart) - section.start;
           }
         }
       }
     } else {
       if (fourMeasuresAfterStart) {
         if (fourMeasuresAfterStart >= section.start) {
-          loopTime = fourMeasuresAfterStart - section.start;
+          loopTime = Number(fourMeasuresAfterStart) - section.start;
         }
       }
     }
@@ -307,7 +312,7 @@ const createComplexFilter = (instrumentals, vox) => {
     (item) => item[item.length - 1].outputs
   );
 
-  const getRubberbandFilter = (num) => {
+  const getRubberbandFilter = (num: number) => {
     const audioInputNum = num + 1;
 
     return [
@@ -349,5 +354,3 @@ const createComplexFilter = (instrumentals, vox) => {
 
   return complexFilter;
 };
-
-module.exports = { createComplexFilter };

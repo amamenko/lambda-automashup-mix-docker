@@ -1,6 +1,6 @@
-const { adequateMatchCheck } = require("./adequateMatchCheck");
+import { adequateMatchCheck } from "./adequateMatchCheck";
 
-const getNSectionMatchArr = (bothSections) => {
+export const getNSectionMatchArr = (bothSections: any[]) => {
   const matchArr = [];
 
   for (let j = 0; j < bothSections.length; j++) {
@@ -9,7 +9,7 @@ const getNSectionMatchArr = (bothSections) => {
     const currentSection = bothSections[j];
     const otherSection = bothSections.find((item) => item.name !== currentName);
 
-    const getEveryN = (sectionArr, n) => {
+    const getEveryN = (sectionArr: any[], n: number) => {
       const everyN = [];
 
       for (let k = 0; k < sectionArr.length; k++) {
@@ -28,14 +28,14 @@ const getNSectionMatchArr = (bothSections) => {
       return everyN;
     };
 
-    const findAllMatches = (n) => {
+    const findAllMatches = (n: number) => {
       return adequateMatchCheck(
-        getEveryN(currentSection.continuousSections, n),
+        getEveryN(currentSection.continuousSections as string[], n),
         otherSection.sections
       );
     };
 
-    let sectionMatches = [];
+    let sectionMatches = [] as string[];
 
     // Most possible matches sections is 8, least possible is 4
     for (let i = 8; i > 3; i--) {
@@ -53,5 +53,3 @@ const getNSectionMatchArr = (bothSections) => {
 
   return matchArr;
 };
-
-module.exports = { getNSectionMatchArr };

@@ -1,12 +1,18 @@
-const fs = require("fs");
-const ffmpeg = require("fluent-ffmpeg");
-const { createComplexFilter } = require("./createComplexFilter");
-const { checkFileExists } = require("../utils/checkFileExists");
-const { trimResultingMix } = require("./trimResultingMix");
-const { logger } = require("../../logger/logger");
-require("dotenv").config();
+import fs from "fs";
+import ffmpeg from "fluent-ffmpeg";
+import { createComplexFilter } from "./createComplexFilter";
+import { checkFileExists } from "../utils/checkFileExists";
+import { trimResultingMix } from "./trimResultingMix";
+import { logger } from "../../logger/logger";
+import { SongObj } from "./normalizeInputsAndMix";
+import "dotenv/config";
 
-const mixTracks = (instrumentals, vox, accompanimentPath, voxPath) => {
+export const mixTracks = (
+  instrumentals: SongObj,
+  vox: SongObj,
+  accompanimentPath: string,
+  voxPath: string
+) => {
   const start = Date.now();
 
   const command = ffmpeg();
@@ -115,5 +121,3 @@ const mixTracks = (instrumentals, vox, accompanimentPath, voxPath) => {
     return;
   }
 };
-
-module.exports = { mixTracks };

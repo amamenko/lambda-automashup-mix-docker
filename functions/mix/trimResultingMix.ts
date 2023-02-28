@@ -1,13 +1,17 @@
-const ffmpeg = require("fluent-ffmpeg");
-const { checkFileExists } = require("../utils/checkFileExists");
-const { getClosestBeatArr } = require("./getClosestBeatArr");
-const { getAudioDurationInSeconds } = require("get-audio-duration");
-const { addMixToContentful } = require("../contentful/addMixToContentful");
-const { checkExistsAndDelete } = require("../utils/checkExistsAndDelete");
-const { logger } = require("../../logger/logger");
-require("dotenv").config();
+import ffmpeg from "fluent-ffmpeg";
+import { checkFileExists } from "../utils/checkFileExists";
+import { getClosestBeatArr } from "./getClosestBeatArr";
+import { getAudioDurationInSeconds } from "get-audio-duration";
+import { addMixToContentful } from "../contentful/addMixToContentful";
+import { checkExistsAndDelete } from "../utils/checkExistsAndDelete";
+import { logger } from "../../logger/logger";
+import { SongObj } from "./normalizeInputsAndMix";
+import "dotenv/config";
 
-const trimResultingMix = async (instrumentals, vocals) => {
+export const trimResultingMix = async (
+  instrumentals: SongObj,
+  vocals: SongObj
+) => {
   const mp3Exists = await checkFileExists("original_mix.mp3");
 
   if (mp3Exists) {
@@ -30,8 +34,6 @@ const trimResultingMix = async (instrumentals, vocals) => {
         ? mixLastSection.start
         : instrumentalSections[instrumentalSections.length - 1].start;
 
-      const accompanimentPath = "./functions/mix/inputs/accompaniment.mp3";
-
       const allBeats =
         typeof instrumentals.beats === "string"
           ? instrumentals.beats.split(", ")
@@ -50,7 +52,7 @@ const trimResultingMix = async (instrumentals, vocals) => {
 
       const start = Date.now();
 
-      const introDuration = mixStart - introStartBeat;
+      const introDuration = mixStart - Number(introStartBeat);
       const mainMixDuration = mixEnd - mixStart;
       const outroDelay = (introDuration + mainMixDuration) * 1000;
 
@@ -73,7 +75,7 @@ const trimResultingMix = async (instrumentals, vocals) => {
             outputs: "main",
           },
           {
-            filter: `afade=t=out:st=${outroEnd - 10}:d=10`,
+            filter: `afade=t=out:st=${Number(outroEnd) - 10}:d=10`,
             inputs: "main",
             outputs: "main_fade_out",
           },
@@ -119,7 +121,7 @@ const trimResultingMix = async (instrumentals, vocals) => {
           await checkExistsAndDelete("./functions/mix/inputs");
           await checkExistsAndDelete("original_mix.mp3");
 
-          const mp3Duration = await getAudioDurationInSeconds(
+          const mp3Duration = (await getAudioDurationInSeconds(
             "trimmed_mix.mp3"
           ).catch((err) => {
             if (process.env.NODE_ENV === "production") {
@@ -129,7 +131,7 @@ const trimResultingMix = async (instrumentals, vocals) => {
             } else {
               console.error(err);
             }
-          });
+          })) as number;
 
           addMixToContentful(
             instrumentals,
@@ -167,5 +169,3 @@ const trimResultingMix = async (instrumentals, vocals) => {
     return;
   }
 };
-
-module.exports = { trimResultingMix };

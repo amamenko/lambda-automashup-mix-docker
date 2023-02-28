@@ -1,16 +1,19 @@
-const { timeStampToSeconds } = require("../utils/timeStampToSeconds");
+import { timeStampToSeconds } from "../utils/timeStampToSeconds";
 
-const findClosestBeat = (seconds, song) => {
+export const findClosestBeat = (
+  seconds: number,
+  song: { [key: string]: any }
+) => {
   let beats = song.beats ? song.beats : song.fields.beats;
 
   if (typeof beats === "string") {
     beats = beats.split(", ");
   }
 
-  const closest = beats.reduce((a, b) => {
+  const closest = beats.reduce((a: number, b: number) => {
     return Math.abs(b - seconds) < Math.abs(a - seconds) ? b : a;
   });
-  const indexClosest = beats.findIndex((item) => item === closest);
+  const indexClosest = beats.findIndex((item: number) => item === closest);
 
   if (song.currentSection === "vocals") {
     return beats[indexClosest + 5];
@@ -19,8 +22,12 @@ const findClosestBeat = (seconds, song) => {
   }
 };
 
-function getClosestBeatArr(section, index, arr) {
-  const song = this;
+export function getClosestBeatArr(
+  section: { [key: string]: any },
+  index: number,
+  arr: any[]
+) {
+  const song = this as unknown as any;
   const nextSection = arr[index + 1];
   const startTime = findClosestBeat(timeStampToSeconds(section.start), song);
   const nextSectionStartTime = nextSection
@@ -35,5 +42,3 @@ function getClosestBeatArr(section, index, arr) {
     sectionName: section.sectionName,
   };
 }
-
-module.exports = { getClosestBeatArr };

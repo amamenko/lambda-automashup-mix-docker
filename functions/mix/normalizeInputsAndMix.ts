@@ -1,14 +1,49 @@
-const fs = require("fs");
-const axios = require("axios");
-const { mixTracks } = require("./mixTracks");
-const { delayExecution } = require("../utils/delayExecution");
-const { logger } = require("../../logger/logger");
-require("dotenv").config();
+import fs from "fs";
+import axios from "axios";
+import { mixTracks } from "./mixTracks";
+import { delayExecution } from "../utils/delayExecution";
+import { logger } from "../../logger/logger";
+import "dotenv/config";
 
-const normalizeInputsAndMix = async (instrumentals, vocals) => {
+export interface SongObj {
+  id: string;
+  mode: string;
+  sections: any[];
+  title: string;
+  artist: string;
+  duration: number;
+  currentSection: string;
+  beats: string | number[];
+  keyScaleFactor: number;
+  tempoScaleFactor: number;
+  fields: {
+    beats: number[];
+    duration: number;
+    sections: any[];
+  };
+  accompaniment?: {
+    fields: {
+      file: {
+        url: string;
+      };
+    };
+  };
+  vocals?: {
+    fields: {
+      file: {
+        url: string;
+      };
+    };
+  };
+}
+
+export const normalizeInputsAndMix = async (
+  instrumentals: SongObj,
+  vocals: SongObj
+) => {
   if (instrumentals && vocals) {
-    const accompanimentLink = instrumentals.accompaniment.fields.file.url;
-    const voxLink = vocals.vocals.fields.file.url;
+    const accompanimentLink = instrumentals?.accompaniment?.fields.file.url;
+    const voxLink = vocals?.vocals?.fields.file.url;
 
     if (accompanimentLink && voxLink) {
       const accompanimentURL = "https:" + accompanimentLink;
@@ -45,7 +80,7 @@ const normalizeInputsAndMix = async (instrumentals, vocals) => {
 
         response.data.pipe(writer);
 
-        response.data.on("error", (err) => {
+        response.data.on("error", (err: any) => {
           const errorStatement =
             "Received an error when attempting to download song entry audio. Terminating process. Output: ";
           if (process.env.NODE_ENV === "production") {
@@ -71,5 +106,3 @@ const normalizeInputsAndMix = async (instrumentals, vocals) => {
     }
   }
 };
-
-module.exports = { normalizeInputsAndMix };

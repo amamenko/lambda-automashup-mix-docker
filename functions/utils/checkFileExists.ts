@@ -1,10 +1,8 @@
-const fs = require("fs");
+import fs from "fs";
 
-const checkFileExists = async (file) => {
+export const checkFileExists = async (file: string) => {
   return fs.promises
     .access(file, fs.constants.F_OK)
     .then(() => true)
     .catch(() => false);
 };
-
-module.exports = { checkFileExists };

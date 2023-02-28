@@ -2,15 +2,16 @@
   "name": "auto-mashup-mix-lambda",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index"
+    "start": "ts-node app.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@logdna/logger": "^2.6.0",
+    "aws-lambda": "^1.0.7",
     "axios": "^0.24.0",
     "contentful": "^9.1.5",
     "contentful-management": "^7.45.7",
@@ -25,5 +26,12 @@
     "wget-improved": "^3.2.1",
     "winston": "^3.8.2",
     "winston-papertrail-transport": "^1.0.9"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.111",
+    "@types/dotenv": "^8.2.0",
+    "@types/fluent-ffmpeg": "^2.1.21",
+    "@types/node": "^18.14.2",
+    "ts-node": "^10.9.1"
   }
 }

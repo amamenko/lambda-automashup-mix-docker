@@ -1,21 +1,23 @@
-const keysArr = require("../arrays/keysArr");
-const { timeStampToSeconds } = require("../utils/timeStampToSeconds");
-const { getLongestContinuous } = require("./getLongestContinuous");
-const { getNSectionMatchArr } = require("./getNSectionMatchArr");
+import { keysArr } from "../arrays/keysArr";
+import { timeStampToSeconds } from "../utils/timeStampToSeconds";
+import { getLongestContinuous } from "./getLongestContinuous";
+import { getNSectionMatchArr } from "./getNSectionMatchArr";
 
-const findMatchingSongs = (allSongs) => {
-  const matches = [];
+export const findMatchingSongs = (allSongs: any[]) => {
+  const matches = [] as any[];
 
   for (const song1 of allSongs) {
     for (let i = 0; i < allSongs.length; i++) {
       const song2 = allSongs[i];
 
-      const foundIndex = keysArr.findIndex((key) => key === song1.fields.key);
+      const foundIndex = keysArr.findIndex(
+        (key: string) => key === song1.fields.key
+      );
 
       // Potential key can be up to 1 semi-tone up or down
       const applicableArr = keysArr
         .slice(foundIndex - 1, foundIndex + 2)
-        .map((item) => {
+        .map((item: string) => {
           const regex = /(-)|(\+)/gi;
           return item.replace(regex, "");
         });
@@ -23,10 +25,10 @@ const findMatchingSongs = (allSongs) => {
       if (song1.sys.id !== song2.sys.id) {
         if (applicableArr.includes(song2.fields.key)) {
           const song1KeyIndex = applicableArr.findIndex(
-            (key) => key === song1.fields.key
+            (key: string) => key === song1.fields.key
           );
           const song2KeyIndex = applicableArr.findIndex(
-            (key) => key === song2.fields.key
+            (key: string) => key === song2.fields.key
           );
           const difference = Math.abs(song1KeyIndex - song2KeyIndex);
           const sign = song1KeyIndex - song2KeyIndex;
@@ -55,16 +57,16 @@ const findMatchingSongs = (allSongs) => {
               });
 
               if (!matchExists) {
-                const noIntroOrOutro = (item) =>
+                const noIntroOrOutro = (item: string) =>
                   item !== "intro" && item !== "outro";
 
                 const song1Sections = song1.fields.sections
-                  .map((section) =>
+                  .map((section: { sectionName: string }) =>
                     section.sectionName ? section.sectionName.split(" ")[0] : ""
                   )
                   .filter(noIntroOrOutro);
                 const song2Sections = song2.fields.sections
-                  .map((section) =>
+                  .map((section: { sectionName: string }) =>
                     section.sectionName ? section.sectionName.split(" ")[0] : ""
                   )
                   .filter(noIntroOrOutro);
@@ -73,12 +75,12 @@ const findMatchingSongs = (allSongs) => {
                   {
                     name: "song1",
                     sections: song1Sections,
-                    continuousSections: [],
+                    continuousSections: [] as any[],
                   },
                   {
                     name: "song2",
                     sections: song2Sections,
-                    continuousSections: [],
+                    continuousSections: [] as any[],
                   },
                 ];
 
@@ -105,13 +107,15 @@ const findMatchingSongs = (allSongs) => {
                 };
 
                 const song1SectionsTimes = song1.fields.sections.map(
-                  (section) => timeStampToSeconds(section.start)
+                  (section: { start: string }) =>
+                    timeStampToSeconds(section.start)
                 );
                 const song2SectionsTimes = song2.fields.sections.map(
-                  (section) => timeStampToSeconds(section.start)
+                  (section: { start: string }) =>
+                    timeStampToSeconds(section.start)
                 );
 
-                const hasDuplicates = (array) =>
+                const hasDuplicates = (array: any[]) =>
                   new Set(array).size !== array.length;
 
                 const song1LongestContinuous = getLongestContinuous(song1);
@@ -126,13 +130,16 @@ const findMatchingSongs = (allSongs) => {
 
                 if (
                   matchArr[0] &&
+                  Array.isArray(matchArr[0]) &&
                   !hasDuplicates(song1SectionsTimes) &&
                   song1LongestContinuous.duration >= 80
                 ) {
-                  const newAccompanimentSections = matchArr[0].map((item) =>
-                    song1Obj.fields.sections.find(
-                      (section) => item === section.sectionName
-                    )
+                  const newAccompanimentSections = matchArr[0].map(
+                    (item: string) =>
+                      song1Obj.fields.sections.find(
+                        (section: { sectionName: string }) =>
+                          item === section.sectionName
+                      )
                   );
 
                   matches.push({
@@ -146,13 +153,16 @@ const findMatchingSongs = (allSongs) => {
 
                 if (
                   matchArr[1] &&
+                  Array.isArray(matchArr[1]) &&
                   !hasDuplicates(song2SectionsTimes) &&
                   song2LongestContinuous.duration >= 80
                 ) {
-                  const newAccompanimentSections = matchArr[1].map((item) =>
-                    song2Obj.fields.sections.find(
-                      (section) => item === section.sectionName
-                    )
+                  const newAccompanimentSections = matchArr[1].map(
+                    (item: string) =>
+                      song2Obj.fields.sections.find(
+                        (section: { sectionName: string }) =>
+                          item === section.sectionName
+                      )
                   );
 
                   matches.push({
@@ -173,5 +183,3 @@ const findMatchingSongs = (allSongs) => {
 
   return matches;
 };
-
-module.exports = { findMatchingSongs };

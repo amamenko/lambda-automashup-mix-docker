@@ -1,9 +1,9 @@
 const fs = require("fs");
 const { checkFileExists } = require("./checkFileExists");
-const { logger } = require("../../logger/logger");
-require("dotenv").config();
+import { logger } from "../../logger/logger";
+import "dotenv/config";
 
-const checkExistsAndDelete = async (filename) => {
+export const checkExistsAndDelete = async (filename: string) => {
   const fileExists = await checkFileExists(filename);
 
   if (fileExists) {
@@ -25,5 +25,3 @@ const checkExistsAndDelete = async (filename) => {
     );
   }
 };
-
-module.exports = { checkExistsAndDelete };

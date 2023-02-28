@@ -1,4 +1,4 @@
-const timeStampToSeconds = (timestamp) => {
+export const timeStampToSeconds = (timestamp: string) => {
   if (timestamp) {
     const timeArr = timestamp.split(":").map((item) => Number(item));
 
@@ -9,7 +9,7 @@ const timeStampToSeconds = (timestamp) => {
     totalSeconds += timeArr[2];
 
     return totalSeconds;
+  } else {
+    return 0;
   }
 };
-
-module.exports = { timeStampToSeconds };

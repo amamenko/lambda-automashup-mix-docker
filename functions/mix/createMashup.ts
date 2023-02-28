@@ -1,25 +1,21 @@
-const contentful = require("contentful");
-const { findMatchingSongs } = require("../match/findMatchingSongs");
-const { normalizeInputsAndMix } = require("./normalizeInputsAndMix");
-const { delayExecution } = require("../utils/delayExecution");
-const { getUniqueOnly } = require("../utils/getUniqueOnly");
-const {
-  addMashupPositionValue,
-} = require("../contentful/addMashupPositionValue");
-const {
-  updateMixLoopInProgress,
-} = require("../contentful/updateMixLoopInProgress");
-const { logger } = require("../../logger/logger");
-require("dotenv").config();
+import contentful from "contentful";
+import { findMatchingSongs } from "../match/findMatchingSongs";
+import { normalizeInputsAndMix } from "./normalizeInputsAndMix";
+import { delayExecution } from "../utils/delayExecution";
+import { getUniqueOnly } from "../utils/getUniqueOnly";
+import { addMashupPositionValue } from "../contentful/addMashupPositionValue";
+import { updateMixLoopInProgress } from "../contentful/updateMixLoopInProgress";
+import { logger } from "../../logger/logger";
+import "dotenv/config";
 
 export const createMashup = async () => {
   // Access to Contentful Delivery API
   const client = contentful.createClient({
-    space: process.env.CONTENTFUL_SPACE_ID,
-    accessToken: process.env.CONTENTFUL_ACCESS_TOKEN,
+    space: process.env.CONTENTFUL_SPACE_ID as string,
+    accessToken: process.env.CONTENTFUL_ACCESS_TOKEN as string,
   });
 
-  const errorLog = (err) => {
+  const errorLog = (err: any) => {
     if (process.env.NODE_ENV === "production") {
       logger("server").error(
         `Received error when attempting to get individual song entries to create a new mashup entry: ${err}`
@@ -37,11 +33,11 @@ export const createMashup = async () => {
       if (res) {
         if (res.items) {
           const inProgressChart = res.items.find(
-            (item) => item.fields.loopInProgress === true
-          );
+            (item: any) => item.fields.loopInProgress === true
+          ) as { [key: string]: any };
           if (inProgressChart && inProgressChart.fields.mashups) {
             const notMixedYet = inProgressChart.fields.mashups.filter(
-              (item) => !item.mixed
+              (item: { [key: string]: boolean }) => !item.mixed
             );
             const otherChart = res.items.find(
               (item) => item.sys.id !== inProgressChart.sys.id
@@ -96,7 +92,7 @@ export const createMashup = async () => {
                   if (songRes.items && songRes.items.length === 2) {
                     const matches = findMatchingSongs(songRes.items);
                     let filteredMatches = matches.filter(
-                      (item) =>
+                      (item: { [key: string]: any }) =>
                         item.accompaniment.sys.id ===
                           currentSongs.accompanimentID &&
                         item.vocals.sys.id === currentSongs.vocalsID
@@ -131,7 +127,7 @@ export const createMashup = async () => {
                           currentSongs.accompanimentID;
                         bothSections.accompaniment.fields.sections =
                           bothSections.accompaniment.fields.sections.filter(
-                            (item) =>
+                            (item: { [key: string]: string }) =>
                               matchedAccompanimentSections.includes(
                                 item.sectionName
                               )

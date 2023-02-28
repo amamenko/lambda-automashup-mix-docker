@@ -1,4 +1,4 @@
-const keysArr = [
+export const keysArr = [
   "C-",
   "C#-",
   "D-",
@@ -36,5 +36,3 @@ const keysArr = [
   "A#+",
   "B+",
 ];
-
-module.exports = keysArr;

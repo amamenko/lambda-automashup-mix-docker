@@ -1,17 +1,20 @@
-const contentfulManagement = require("contentful-management");
-const { logger } = require("../../logger/logger");
-const { getMostRecentSaturday } = require("../utils/getMostRecentSaturday");
-require("dotenv").config();
+import contentfulManagement from "contentful-management";
+import { logger } from "../../logger/logger";
+import { getMostRecentSaturday } from "../utils/getMostRecentSaturday";
+import "dotenv/config";
 
-const updateMixLoopInProgress = async (mixChartID, state) => {
+export const updateMixLoopInProgress = async (
+  mixChartID: string,
+  state: string
+) => {
   // Access to Contentful Management API
   const managementClient = contentfulManagement.createClient({
-    accessToken: process.env.CONTENT_MANAGEMENT_TOKEN,
+    accessToken: process.env.CONTENT_MANAGEMENT_TOKEN as string,
   });
 
   const mostRecentSaturday = getMostRecentSaturday();
 
-  const errorLog = (err) => {
+  const errorLog = (err: any) => {
     if (process.env.NODE_ENV === "production") {
       logger("server").error(
         `Received error when attempting to update mix loop in progress: ${err}`
@@ -22,7 +25,7 @@ const updateMixLoopInProgress = async (mixChartID, state) => {
   };
 
   return await managementClient
-    .getSpace(process.env.CONTENTFUL_SPACE_ID)
+    .getSpace(process.env.CONTENTFUL_SPACE_ID as string)
     .then(async (space) => {
       return await space
         .getEnvironment("master")
@@ -73,5 +76,3 @@ const updateMixLoopInProgress = async (mixChartID, state) => {
     })
     .catch((e) => errorLog(e));
 };
-
-module.exports = { updateMixLoopInProgress };
