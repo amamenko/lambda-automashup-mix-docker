@@ -4,6 +4,7 @@ import { mixTracks } from "./mixTracks";
 import { delayExecution } from "../utils/delayExecution";
 import { logger } from "../../logger/logger";
 import "dotenv/config";
+import { APIGatewayProxyCallback } from "aws-lambda";
 
 export interface SongObj {
   id: string;
@@ -38,6 +39,7 @@ export interface SongObj {
 }
 
 export const normalizeInputsAndMix = async (
+  callback: APIGatewayProxyCallback,
   instrumentals: SongObj,
   vocals: SongObj
 ) => {
@@ -88,6 +90,12 @@ export const normalizeInputsAndMix = async (
           } else {
             console.error(errorStatement + err);
           }
+          callback(null, {
+            statusCode: 404,
+            body: JSON.stringify({
+              message: errorStatement + err,
+            }),
+          });
         });
 
         response.data.on("end", () => {
@@ -102,7 +110,7 @@ export const normalizeInputsAndMix = async (
 
       await delayExecution(10000);
 
-      mixTracks(instrumentals, vocals, accompanimentPath, voxPath);
+      mixTracks(callback, instrumentals, vocals, accompanimentPath, voxPath);
     }
   }
 };

@@ -1,14 +1,16 @@
-import contentfulManagement from "contentful-management";
+import { createClient } from "contentful-management";
 import { logger } from "../../logger/logger";
 import { getMostRecentSaturday } from "../utils/getMostRecentSaturday";
+import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 export const updateMixLoopInProgress = async (
+  callback: APIGatewayProxyCallback,
   mixChartID: string,
   state: string
 ) => {
   // Access to Contentful Management API
-  const managementClient = contentfulManagement.createClient({
+  const managementClient = createClient({
     accessToken: process.env.CONTENT_MANAGEMENT_TOKEN as string,
   });
 
@@ -22,6 +24,12 @@ export const updateMixLoopInProgress = async (
     } else {
       console.error(err);
     }
+    callback(null, {
+      statusCode: 404,
+      body: JSON.stringify({
+        message: err,
+      }),
+    });
   };
 
   return await managementClient

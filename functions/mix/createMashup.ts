@@ -1,4 +1,4 @@
-import contentful from "contentful";
+import { createClient } from "contentful";
 import { findMatchingSongs } from "../match/findMatchingSongs";
 import { normalizeInputsAndMix } from "./normalizeInputsAndMix";
 import { delayExecution } from "../utils/delayExecution";
@@ -6,11 +6,12 @@ import { getUniqueOnly } from "../utils/getUniqueOnly";
 import { addMashupPositionValue } from "../contentful/addMashupPositionValue";
 import { updateMixLoopInProgress } from "../contentful/updateMixLoopInProgress";
 import { logger } from "../../logger/logger";
+import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
-export const createMashup = async () => {
+export const createMashup = async (callback: APIGatewayProxyCallback) => {
   // Access to Contentful Delivery API
-  const client = contentful.createClient({
+  const client = createClient({
     space: process.env.CONTENTFUL_SPACE_ID as string,
     accessToken: process.env.CONTENTFUL_ACCESS_TOKEN as string,
   });
@@ -23,6 +24,12 @@ export const createMashup = async () => {
     } else {
       console.error(err);
     }
+    callback(null, {
+      statusCode: 404,
+      body: JSON.stringify({
+        message: `Received error when attempting to get individual song entries to create a new mashup entry: ${err}`,
+      }),
+    });
   };
 
   await client
@@ -54,21 +61,24 @@ export const createMashup = async () => {
             }, 10000);
 
             if (currentIndex === lastMashupListIndex) {
-              await updateMixLoopInProgress(mashupListID, "done").then(
-                async () => {
-                  // If major mix chart is done, move on to minor mixes
-                  if (
-                    inProgressChart.fields.title.toLowerCase().includes("major")
-                  ) {
-                    if (otherChart) {
-                      await updateMixLoopInProgress(
-                        otherChart.sys.id,
-                        "in progress"
-                      );
-                    }
+              await updateMixLoopInProgress(
+                callback,
+                mashupListID,
+                "done"
+              ).then(async () => {
+                // If major mix chart is done, move on to minor mixes
+                if (
+                  inProgressChart.fields.title.toLowerCase().includes("major")
+                ) {
+                  if (otherChart) {
+                    await updateMixLoopInProgress(
+                      callback,
+                      otherChart.sys.id,
+                      "in progress"
+                    );
                   }
                 }
-              );
+              });
             } else {
               if (currentIndex !== 0) {
                 addMashupPositionValue(mashupListID, currentIndex);
@@ -139,6 +149,7 @@ export const createMashup = async () => {
                           currentSongs.vocalsTempoScaleFactor;
 
                         normalizeInputsAndMix(
+                          callback,
                           bothSections.accompaniment.fields,
                           bothSections.vocals.fields
                         );
@@ -150,6 +161,12 @@ export const createMashup = async () => {
                         } else {
                           console.log(alreadyExistsStatement);
                         }
+                        callback(null, {
+                          statusCode: 200,
+                          body: JSON.stringify({
+                            message: alreadyExistsStatement,
+                          }),
+                        });
                       }
                     }
                   } else {
@@ -160,6 +177,12 @@ export const createMashup = async () => {
                     } else {
                       console.log(missingEntryStatement);
                     }
+                    callback(null, {
+                      statusCode: 404,
+                      body: JSON.stringify({
+                        message: missingEntryStatement,
+                      }),
+                    });
                   }
                 }
               })

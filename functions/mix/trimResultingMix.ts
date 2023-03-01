@@ -6,9 +6,11 @@ import { addMixToContentful } from "../contentful/addMixToContentful";
 import { checkExistsAndDelete } from "../utils/checkExistsAndDelete";
 import { logger } from "../../logger/logger";
 import { SongObj } from "./normalizeInputsAndMix";
+import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 export const trimResultingMix = async (
+  callback: APIGatewayProxyCallback,
   instrumentals: SongObj,
   vocals: SongObj
 ) => {
@@ -105,7 +107,12 @@ export const trimResultingMix = async (
           await checkExistsAndDelete("original_mix.mp3");
           await checkExistsAndDelete("trimmed_mix.mp3");
 
-          return;
+          callback(null, {
+            statusCode: 404,
+            body: JSON.stringify({
+              message: `${errorMessageStatement} ${err.message}`,
+            }),
+          });
         })
         .on("end", async () => {
           const successStatement = `\nDone in ${
@@ -131,9 +138,16 @@ export const trimResultingMix = async (
             } else {
               console.error(err);
             }
+            callback(null, {
+              statusCode: 404,
+              body: JSON.stringify({
+                message: `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`,
+              }),
+            });
           })) as number;
 
           addMixToContentful(
+            callback,
             instrumentals,
             vocals,
             mp3Duration,
@@ -154,7 +168,12 @@ export const trimResultingMix = async (
         console.log(noSectionsAvailableStatement);
       }
 
-      return;
+      callback(null, {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: noSectionsAvailableStatement,
+        }),
+      });
     }
   } else {
     const noFileAvailableStatement =
@@ -166,6 +185,11 @@ export const trimResultingMix = async (
       console.log(noFileAvailableStatement);
     }
 
-    return;
+    callback(null, {
+      statusCode: 404,
+      body: JSON.stringify({
+        message: noFileAvailableStatement,
+      }),
+    });
   }
 };

@@ -1,4 +1,4 @@
-import contentfulManagement from "contentful-management";
+import { createClient } from "contentful-management";
 import "dotenv/config";
 
 export const addMashupPositionValue = async (
@@ -6,7 +6,7 @@ export const addMashupPositionValue = async (
   currentIndex: number
 ) => {
   // Access to Contentful Management API
-  const managementClient = contentfulManagement.createClient({
+  const managementClient = createClient({
     accessToken: process.env.CONTENT_MANAGEMENT_TOKEN as string,
   });
 

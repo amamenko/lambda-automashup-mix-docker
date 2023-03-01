@@ -1,8 +1,9 @@
 import fs from "fs";
 import { checkFileExists } from "../utils/checkFileExists";
-import contentful from "contentful-management";
+import { createClient } from "contentful-management";
 import { logger } from "../../logger/logger";
 import "dotenv/config";
+import { APIGatewayProxyCallback } from "aws-lambda";
 
 interface SongObj {
   id: string;
@@ -12,6 +13,7 @@ interface SongObj {
 }
 
 export const addMixToContentful = async (
+  callback: APIGatewayProxyCallback,
   accompaniment: SongObj,
   vocals: SongObj,
   mp3Duration: number,
@@ -19,7 +21,7 @@ export const addMixToContentful = async (
   mixEnd: number
 ) => {
   // Access to Contentful's Content Management API
-  const client = contentful.createClient({
+  const client = createClient({
     accessToken: process.env.CONTENT_MANAGEMENT_TOKEN as string,
   });
 
@@ -178,25 +180,44 @@ export const addMixToContentful = async (
                       } else {
                         console.log(successStatement);
                       }
-
-                      return;
+                      callback(null, {
+                        statusCode: 200,
+                        body: JSON.stringify({
+                          message: successStatement,
+                        }),
+                      });
                     })
                     .catch((err) => {
                       getErrorLogs(err);
                       deleteTrimmedMix();
-                      return err;
+                      callback(null, {
+                        statusCode: 404,
+                        body: JSON.stringify({
+                          message: err,
+                        }),
+                      });
                     });
                 })
                 .catch((err) => {
                   getErrorLogs(err);
                   deleteTrimmedMix();
-                  return err;
+                  callback(null, {
+                    statusCode: 404,
+                    body: JSON.stringify({
+                      message: err,
+                    }),
+                  });
                 });
             })
             .catch((err) => {
               getErrorLogs(err);
               deleteTrimmedMix();
-              return err;
+              callback(null, {
+                statusCode: 404,
+                body: JSON.stringify({
+                  message: err,
+                }),
+              });
             });
         });
     } else {
@@ -208,8 +229,12 @@ export const addMixToContentful = async (
       } else {
         console.log(doesntExistStatement);
       }
-
-      return;
+      callback(null, {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: doesntExistStatement,
+        }),
+      });
     }
   } else {
     const doesntExistStatement =
@@ -220,7 +245,11 @@ export const addMixToContentful = async (
     } else {
       console.log(doesntExistStatement);
     }
-
-    return;
+    callback(null, {
+      statusCode: 404,
+      body: JSON.stringify({
+        message: doesntExistStatement,
+      }),
+    });
   }
 };

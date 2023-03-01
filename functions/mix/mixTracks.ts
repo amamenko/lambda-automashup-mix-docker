@@ -5,9 +5,11 @@ import { checkFileExists } from "../utils/checkFileExists";
 import { trimResultingMix } from "./trimResultingMix";
 import { logger } from "../../logger/logger";
 import { SongObj } from "./normalizeInputsAndMix";
+import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 export const mixTracks = (
+  callback: APIGatewayProxyCallback,
   instrumentals: SongObj,
   vox: SongObj,
   accompanimentPath: string,
@@ -87,7 +89,12 @@ export const mixTracks = (
           );
         }
 
-        return;
+        callback(null, {
+          statusCode: 404,
+          body: JSON.stringify({
+            message: errorMessageStatement,
+          }),
+        });
       })
       .on("end", async () => {
         const doneStatement = `\nDone in ${
@@ -104,7 +111,7 @@ export const mixTracks = (
           console.log(doneStatement);
         }
 
-        trimResultingMix(instrumentals, vox);
+        trimResultingMix(callback, instrumentals, vox);
 
         return;
       })
@@ -118,6 +125,11 @@ export const mixTracks = (
       console.log(noComplexFilterStatement);
     }
 
-    return;
+    callback(null, {
+      statusCode: 404,
+      body: JSON.stringify({
+        message: noComplexFilterStatement,
+      }),
+    });
   }
 };

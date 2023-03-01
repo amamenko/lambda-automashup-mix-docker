@@ -4,12 +4,13 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node app.ts"
+    "start": "ts-node app.ts",
+    "build": "tsc --build ./tsconfig.json"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ffprobe-installer/ffprobe": "^2.0.0",
     "@logdna/logger": "^2.6.0",
     "aws-lambda": "^1.0.7",
     "axios": "^0.24.0",
