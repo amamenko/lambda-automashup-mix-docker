@@ -3,8 +3,8 @@ import axios from "axios";
 import { mixTracks } from "./mixTracks";
 import { delayExecution } from "../utils/delayExecution";
 import { logger } from "../../logger/logger";
-import "dotenv/config";
 import { APIGatewayProxyCallback } from "aws-lambda";
+import "dotenv/config";
 
 export interface SongObj {
   id: string;
@@ -90,7 +90,7 @@ export const normalizeInputsAndMix = async (
           } else {
             console.error(errorStatement + err);
           }
-          callback(null, {
+          return callback(null, {
             statusCode: 404,
             body: JSON.stringify({
               message: errorStatement + err,

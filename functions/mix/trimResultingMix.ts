@@ -107,7 +107,7 @@ export const trimResultingMix = async (
           await checkExistsAndDelete("original_mix.mp3");
           await checkExistsAndDelete("trimmed_mix.mp3");
 
-          callback(null, {
+          return callback(null, {
             statusCode: 404,
             body: JSON.stringify({
               message: `${errorMessageStatement} ${err.message}`,
@@ -138,7 +138,7 @@ export const trimResultingMix = async (
             } else {
               console.error(err);
             }
-            callback(null, {
+            return callback(null, {
               statusCode: 404,
               body: JSON.stringify({
                 message: `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`,
@@ -168,7 +168,7 @@ export const trimResultingMix = async (
         console.log(noSectionsAvailableStatement);
       }
 
-      callback(null, {
+      return callback(null, {
         statusCode: 404,
         body: JSON.stringify({
           message: noSectionsAvailableStatement,
@@ -185,7 +185,7 @@ export const trimResultingMix = async (
       console.log(noFileAvailableStatement);
     }
 
-    callback(null, {
+    return callback(null, {
       statusCode: 404,
       body: JSON.stringify({
         message: noFileAvailableStatement,

@@ -24,7 +24,7 @@ export const createMashup = async (callback: APIGatewayProxyCallback) => {
     } else {
       console.error(err);
     }
-    callback(null, {
+    return callback(null, {
       statusCode: 404,
       body: JSON.stringify({
         message: `Received error when attempting to get individual song entries to create a new mashup entry: ${err}`,
@@ -161,7 +161,7 @@ export const createMashup = async (callback: APIGatewayProxyCallback) => {
                         } else {
                           console.log(alreadyExistsStatement);
                         }
-                        callback(null, {
+                        return callback(null, {
                           statusCode: 200,
                           body: JSON.stringify({
                             message: alreadyExistsStatement,
@@ -177,7 +177,7 @@ export const createMashup = async (callback: APIGatewayProxyCallback) => {
                     } else {
                       console.log(missingEntryStatement);
                     }
-                    callback(null, {
+                    return callback(null, {
                       statusCode: 404,
                       body: JSON.stringify({
                         message: missingEntryStatement,

@@ -2,8 +2,8 @@ import fs from "fs";
 import { checkFileExists } from "../utils/checkFileExists";
 import { createClient } from "contentful-management";
 import { logger } from "../../logger/logger";
-import "dotenv/config";
 import { APIGatewayProxyCallback } from "aws-lambda";
+import "dotenv/config";
 
 interface SongObj {
   id: string;
@@ -180,7 +180,7 @@ export const addMixToContentful = async (
                       } else {
                         console.log(successStatement);
                       }
-                      callback(null, {
+                      return callback(null, {
                         statusCode: 200,
                         body: JSON.stringify({
                           message: successStatement,
@@ -190,7 +190,7 @@ export const addMixToContentful = async (
                     .catch((err) => {
                       getErrorLogs(err);
                       deleteTrimmedMix();
-                      callback(null, {
+                      return callback(null, {
                         statusCode: 404,
                         body: JSON.stringify({
                           message: err,
@@ -201,7 +201,7 @@ export const addMixToContentful = async (
                 .catch((err) => {
                   getErrorLogs(err);
                   deleteTrimmedMix();
-                  callback(null, {
+                  return callback(null, {
                     statusCode: 404,
                     body: JSON.stringify({
                       message: err,
@@ -212,7 +212,7 @@ export const addMixToContentful = async (
             .catch((err) => {
               getErrorLogs(err);
               deleteTrimmedMix();
-              callback(null, {
+              return callback(null, {
                 statusCode: 404,
                 body: JSON.stringify({
                   message: err,
@@ -229,7 +229,7 @@ export const addMixToContentful = async (
       } else {
         console.log(doesntExistStatement);
       }
-      callback(null, {
+      return callback(null, {
         statusCode: 404,
         body: JSON.stringify({
           message: doesntExistStatement,
@@ -245,7 +245,7 @@ export const addMixToContentful = async (
     } else {
       console.log(doesntExistStatement);
     }
-    callback(null, {
+    return callback(null, {
       statusCode: 404,
       body: JSON.stringify({
         message: doesntExistStatement,

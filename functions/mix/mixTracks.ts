@@ -89,7 +89,7 @@ export const mixTracks = (
           );
         }
 
-        callback(null, {
+        return callback(null, {
           statusCode: 404,
           body: JSON.stringify({
             message: errorMessageStatement,
@@ -125,7 +125,7 @@ export const mixTracks = (
       console.log(noComplexFilterStatement);
     }
 
-    callback(null, {
+    return callback(null, {
       statusCode: 404,
       body: JSON.stringify({
         message: noComplexFilterStatement,

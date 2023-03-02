@@ -24,7 +24,7 @@ export const updateMixLoopInProgress = async (
     } else {
       console.error(err);
     }
-    callback(null, {
+    return callback(null, {
       statusCode: 404,
       body: JSON.stringify({
         message: err,

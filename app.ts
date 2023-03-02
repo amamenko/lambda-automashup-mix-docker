@@ -7,6 +7,14 @@ export const lambdaHandler = async (
   context: Context,
   callback: APIGatewayProxyCallback
 ) => {
-  if (await warmer(event)) return "warmed";
-  createMashup(callback);
+  if (event.body) {
+    const body = JSON.parse(event.body);
+    if (body.warmer && (await warmer(event))) {
+      return "warmed";
+    } else {
+      return "no warmer on body";
+    }
+  } else {
+    createMashup(callback);
+  }
 };
