@@ -1,19 +1,13 @@
-import { Context, APIGatewayEvent, APIGatewayProxyCallback } from "aws-lambda";
+import { Context, APIGatewayProxyCallback } from "aws-lambda";
 import { createMashup } from "./functions/mix/createMashup";
-import warmer from "lambda-warmer";
 
 export const lambdaHandler = async (
-  event: APIGatewayEvent,
+  event: any,
   context: Context,
   callback: APIGatewayProxyCallback
 ) => {
-  if (event.body) {
-    const body = JSON.parse(event.body);
-    if (body.warmer && (await warmer(event))) {
-      return "warmed";
-    } else {
-      return "no warmer on body";
-    }
+  if (event && event.warmer) {
+    return "warmed";
   } else {
     createMashup(callback);
   }
