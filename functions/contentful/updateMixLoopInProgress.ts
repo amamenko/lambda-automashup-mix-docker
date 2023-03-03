@@ -1,11 +1,9 @@
 import { createClient } from "contentful-management";
 import { logger } from "../../logger/logger";
 import { getMostRecentSaturday } from "../utils/getMostRecentSaturday";
-import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 export const updateMixLoopInProgress = async (
-  callback: APIGatewayProxyCallback,
   mixChartID: string,
   state: string
 ) => {
@@ -24,12 +22,7 @@ export const updateMixLoopInProgress = async (
     } else {
       console.error(err);
     }
-    return callback(null, {
-      statusCode: 404,
-      body: JSON.stringify({
-        message: err,
-      }),
-    });
+    return err;
   };
 
   return await managementClient

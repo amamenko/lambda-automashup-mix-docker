@@ -9,6 +9,7 @@ export const lambdaHandler = async (
   if (event && event.warmer) {
     return "warmed";
   } else {
-    createMashup(callback);
+    const resolvedMashup = await createMashup();
+    return resolvedMashup;
   }
 };
