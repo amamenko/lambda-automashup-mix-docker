@@ -14,9 +14,9 @@ COPY --from=builder /usr/app/dist/functions ./functions
 RUN npm i
 RUN yum -y update && yum -y install tar xz
 # Install ffmpeg
-ADD https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz /tmp/ffmpeg.tar.xz
+ADD https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-arm64-static.tar.xz /tmp/ffmpeg.tar.xz
 RUN cd /tmp && \
     tar Jxvf ffmpeg.tar.xz && \
-    cp ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ffmpeg && \
-    cp ffmpeg-*-amd64-static/ffprobe /usr/local/bin/ffprobe
+    cp ffmpeg-*-arm64-static/ffmpeg /usr/local/bin/ffmpeg && \
+    cp ffmpeg-*-arm64-static/ffprobe /usr/local/bin/ffprobe
 CMD ["app.lambdaHandler"]

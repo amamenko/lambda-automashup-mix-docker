@@ -55,7 +55,7 @@ export const normalizeInputsAndMix = async (
 
       const INPUTS_DIR =
         process.env.NODE_ENV === "production"
-          ? "./tmp/inputs"
+          ? "/tmp"
           : "./functions/mix/inputs";
 
       if (!fs.existsSync(INPUTS_DIR)) {
