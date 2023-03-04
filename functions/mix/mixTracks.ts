@@ -6,6 +6,9 @@ import { trimResultingMix } from "./trimResultingMix";
 import { SongObj } from "./normalizeInputsAndMix";
 import "dotenv/config";
 
+export const OUTPUT_LOCATION =
+  process.env.NODE_ENV === "production" ? "/tmp" : ".";
+
 export const mixTracks = async (
   instrumentals: SongObj,
   vox: SongObj,
@@ -32,49 +35,12 @@ export const mixTracks = async (
       return new Promise((resolve, reject) => {
         command
           .complexFilter(fullComplexFilter)
-          .output("./original_mix.mp3")
+          .output(`${OUTPUT_LOCATION}/original_mix.mp3`)
           .on("error", async (err, stdout, stderr) => {
             const errorMessageStatement = `FFMPEG received an error when attempting to mix the instrumentals of the track "${instrumentals.title}" by ${instrumentals.artist} with the vocals of the track "${vox.title}" by ${vox.artist}. Terminating process. Output: `;
             const stdErrStatement = "FFMPEG stderr:\n" + stderr;
             console.error(`${errorMessageStatement} ${err.message}`);
             console.log(stdErrStatement);
-
-            const inputsExists = await checkFileExists(
-              "./functions/mix/inputs"
-            );
-            const leftoverOutputExists = await checkFileExists(
-              "original_mix.mp3"
-            );
-
-            if (inputsExists) {
-              fs.rm(
-                "./functions/mix/inputs",
-                {
-                  recursive: true,
-                  force: true,
-                },
-                () => {
-                  const leftoverDeletedStatement =
-                    "Audio MP3 inputs directory deleted!";
-                  console.log(leftoverDeletedStatement);
-                }
-              );
-            }
-
-            if (leftoverOutputExists) {
-              fs.rm(
-                "original_mix.mp3",
-                {
-                  recursive: true,
-                  force: true,
-                },
-                () => {
-                  const leftoverDeletedStatement =
-                    "Leftover output MP3 file deleted!";
-                  console.log(leftoverDeletedStatement);
-                }
-              );
-            }
             reject(errorMessageStatement);
             return errorMessageStatement;
           })
@@ -85,7 +51,7 @@ export const mixTracks = async (
               instrumentals.title
             }" by ${instrumentals.artist} with the vocals of the track "${
               vox.title
-            }" by ${vox.artist}.\nSaved to original_mix.mp3.`;
+            }" by ${vox.artist}.\nSaved to${OUTPUT_LOCATION}/original_mix.mp3.`;
 
             console.log(doneStatement);
             resolve(doneStatement);
