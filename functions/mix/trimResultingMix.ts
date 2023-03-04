@@ -140,6 +140,7 @@ export const trimResultingMix = async (
               })) as number;
 
               resolve(mp3Duration);
+              resolve(true);
               return;
             })
             .run();

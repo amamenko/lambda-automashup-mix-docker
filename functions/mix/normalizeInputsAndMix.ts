@@ -3,6 +3,7 @@ import axios from "axios";
 import { mixTracks } from "./mixTracks";
 import { delayExecution } from "../utils/delayExecution";
 import { logger } from "../../logger/logger";
+import { getAssetUrl } from "../contentful/getAsset";
 import "dotenv/config";
 
 export interface SongObj {
@@ -22,6 +23,7 @@ export interface SongObj {
     sections: any[];
   };
   accompaniment?: {
+    sys: any;
     fields: {
       file: {
         url: string;
@@ -29,6 +31,7 @@ export interface SongObj {
     };
   };
   vocals?: {
+    sys: any;
     fields: {
       file: {
         url: string;
@@ -42,8 +45,10 @@ export const normalizeInputsAndMix = async (
   vocals: SongObj
 ) => {
   if (instrumentals && vocals) {
-    const accompanimentLink = instrumentals?.accompaniment?.fields.file.url;
-    const voxLink = vocals?.vocals?.fields.file.url;
+    const accompanimentLink = await getAssetUrl(
+      instrumentals.accompaniment.sys.id
+    );
+    const voxLink = await getAssetUrl(vocals.vocals.sys.id);
 
     if (accompanimentLink && voxLink) {
       const accompanimentURL = "https:" + accompanimentLink;
