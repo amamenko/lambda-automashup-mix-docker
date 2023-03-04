@@ -12,17 +12,20 @@ export const addMashupPositionValue = async (
 
   return await managementClient
     .getSpace(process.env.CONTENTFUL_SPACE_ID as string)
-    .then((space) => {
-      space.getEnvironment("master").then((environment) => {
-        environment.getEntry(mixChartID).then((entry) => {
+    .then(async (space) => {
+      return await space.getEnvironment("master").then(async (environment) => {
+        return await environment.getEntry(mixChartID).then(async (entry) => {
           entry.fields.currentLoopPosition = {
             "en-US": currentIndex + 1,
           };
 
-          entry.update().then(() => {
-            environment.getEntry(mixChartID).then((updatedEntry) => {
-              updatedEntry.publish();
-            });
+          return await entry.update().then(async () => {
+            return await environment
+              .getEntry(mixChartID)
+              .then(async (updatedEntry) => {
+                await updatedEntry.publish();
+                return true;
+              });
           });
         });
       });

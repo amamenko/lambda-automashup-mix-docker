@@ -3,7 +3,6 @@ import axios from "axios";
 import { mixTracks } from "./mixTracks";
 import { delayExecution } from "../utils/delayExecution";
 import { logger } from "../../logger/logger";
-import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 export interface SongObj {
@@ -39,7 +38,6 @@ export interface SongObj {
 }
 
 export const normalizeInputsAndMix = async (
-  callback: APIGatewayProxyCallback,
   instrumentals: SongObj,
   vocals: SongObj
 ) => {
@@ -90,12 +88,7 @@ export const normalizeInputsAndMix = async (
           } else {
             console.error(errorStatement + err);
           }
-          return callback(null, {
-            statusCode: 404,
-            body: JSON.stringify({
-              message: errorStatement + err,
-            }),
-          });
+          return `${errorStatement}${err}`;
         });
 
         response.data.on("end", () => {
@@ -110,7 +103,9 @@ export const normalizeInputsAndMix = async (
 
       await delayExecution(10000);
 
-      mixTracks(callback, instrumentals, vocals, accompanimentPath, voxPath);
+      return await mixTracks(instrumentals, vocals, accompanimentPath, voxPath);
     }
+  } else {
+    return "Missing either instrumentals or vocals data!";
   }
 };

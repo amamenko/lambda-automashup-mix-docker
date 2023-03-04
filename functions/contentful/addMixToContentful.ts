@@ -2,7 +2,6 @@ import fs from "fs";
 import { checkFileExists } from "../utils/checkFileExists";
 import { createClient } from "contentful-management";
 import { logger } from "../../logger/logger";
-import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 interface SongObj {
@@ -13,7 +12,6 @@ interface SongObj {
 }
 
 export const addMixToContentful = async (
-  callback: APIGatewayProxyCallback,
   accompaniment: SongObj,
   vocals: SongObj,
   mp3Duration: number,
@@ -46,6 +44,7 @@ export const addMixToContentful = async (
         }
       );
     }
+    return;
   };
 
   if (accompaniment && vocals) {
@@ -82,14 +81,14 @@ export const addMixToContentful = async (
         }
       };
 
-      client
+      return await client
         .getSpace(process.env.CONTENTFUL_SPACE_ID as string)
-        .then((space) => {
-          space
+        .then(async (space) => {
+          return await space
             .getEnvironment("master")
-            .then((environment) => {
+            .then(async (environment) => {
               // First add the accompaniment track as an asset in Contentful
-              environment
+              return await environment
                 .createAssetFromFiles({
                   fields: {
                     title: {
@@ -115,10 +114,10 @@ export const addMixToContentful = async (
                     },
                   },
                 })
-                .then((asset) => asset.processForAllLocales())
-                .then((asset) => asset.publish())
+                .then(async (asset) => await asset.processForAllLocales())
+                .then(async (asset) => await asset.publish())
                 .then(async (mashupAsset) => {
-                  return environment
+                  return await environment
                     .createEntry("mashup", {
                       fields: {
                         title: {
@@ -168,9 +167,9 @@ export const addMixToContentful = async (
                         },
                       },
                     })
-                    .then((entry) => {
-                      entry.publish();
-                      deleteTrimmedMix();
+                    .then(async (entry) => {
+                      await entry.publish();
+                      await deleteTrimmedMix();
 
                       const successStatement =
                         "Successfully created new mashup entry!";
@@ -180,44 +179,24 @@ export const addMixToContentful = async (
                       } else {
                         console.log(successStatement);
                       }
-                      return callback(null, {
-                        statusCode: 200,
-                        body: JSON.stringify({
-                          message: successStatement,
-                        }),
-                      });
+                      return successStatement;
                     })
                     .catch((err) => {
                       getErrorLogs(err);
                       deleteTrimmedMix();
-                      return callback(null, {
-                        statusCode: 404,
-                        body: JSON.stringify({
-                          message: err,
-                        }),
-                      });
+                      return err;
                     });
                 })
                 .catch((err) => {
                   getErrorLogs(err);
                   deleteTrimmedMix();
-                  return callback(null, {
-                    statusCode: 404,
-                    body: JSON.stringify({
-                      message: err,
-                    }),
-                  });
+                  return err;
                 });
             })
             .catch((err) => {
               getErrorLogs(err);
               deleteTrimmedMix();
-              return callback(null, {
-                statusCode: 404,
-                body: JSON.stringify({
-                  message: err,
-                }),
-              });
+              return err;
             });
         });
     } else {
@@ -229,12 +208,7 @@ export const addMixToContentful = async (
       } else {
         console.log(doesntExistStatement);
       }
-      return callback(null, {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: doesntExistStatement,
-        }),
-      });
+      return doesntExistStatement;
     }
   } else {
     const doesntExistStatement =
@@ -245,11 +219,6 @@ export const addMixToContentful = async (
     } else {
       console.log(doesntExistStatement);
     }
-    return callback(null, {
-      statusCode: 404,
-      body: JSON.stringify({
-        message: doesntExistStatement,
-      }),
-    });
+    return doesntExistStatement;
   }
 };

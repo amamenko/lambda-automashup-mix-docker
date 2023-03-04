@@ -7,6 +7,7 @@ import { updateMixLoopInProgress } from "../contentful/updateMixLoopInProgress";
 import { logger } from "../../logger/logger";
 import { getMixList } from "../contentful/getMixList";
 import { getMixSongEntries } from "../contentful/getMixSongEntries";
+import { getMashupEntries } from "../contentful/getMashupEntries";
 import "dotenv/config";
 
 export const createMashup = async () => {
@@ -37,11 +38,9 @@ export const createMashup = async () => {
         : 0;
       const lastMashupListIndex = notMixedYet.length - 1;
       const mashupListID = inProgressChart.sys.id;
-      setTimeout(() => {
-        if (currentIndex === 0 && currentIndex !== lastMashupListIndex) {
-          addMashupPositionValue(mashupListID, currentIndex);
-        }
-      }, 10000);
+      if (currentIndex === 0 && currentIndex !== lastMashupListIndex) {
+        addMashupPositionValue(mashupListID, currentIndex);
+      }
 
       if (currentIndex === lastMashupListIndex) {
         await updateMixLoopInProgress(mashupListID, "done").then(async () => {
@@ -54,7 +53,7 @@ export const createMashup = async () => {
         });
       } else {
         if (currentIndex !== 0) {
-          addMashupPositionValue(mashupListID, currentIndex);
+          await addMashupPositionValue(mashupListID, currentIndex);
         }
       }
 
@@ -82,60 +81,41 @@ export const createMashup = async () => {
 
           if (filteredMatches && filteredMatches[0]) {
             const bothSections = filteredMatches[0];
-            return bothSections;
-            // const doesMashupAlreadyExist = await client
-            //   .getEntries({
-            //     "fields.vocalsTitle": currentSongs.vocalsTitle,
-            //     "fields.vocalsArtist": currentSongs.vocalsArtist,
-            //     "fields.accompanimentTitle":
-            //       currentSongs.accompanimentTitle,
-            //     "fields.accompanimentArtist":
-            //       currentSongs.accompanimentArtist,
-            //     content_type: "mashup",
-            //   })
-            //   .catch((e) => errorLog(e));
+            const doesMashupAlreadyExist = await getMashupEntries(
+              currentSongs
+            ).catch((e) => errorLog(e));
 
-            // // Check for existing mashup just in case
-            // if (
-            //   doesMashupAlreadyExist &&
-            //   doesMashupAlreadyExist.items.length === 0
-            // ) {
-            //   const matchedAccompanimentSections =
-            //     currentSongs.accompanimentSections.split(", ");
+            // Check for existing mashup just in case
+            if (doesMashupAlreadyExist && doesMashupAlreadyExist.length === 0) {
+              const matchedAccompanimentSections =
+                currentSongs.accompanimentSections.split(", ");
 
-            //   bothSections.accompaniment.fields.id =
-            //     currentSongs.accompanimentID;
-            //   bothSections.accompaniment.fields.sections =
-            //     bothSections.accompaniment.fields.sections.filter(
-            //       (item: { [key: string]: string }) =>
-            //         matchedAccompanimentSections.includes(item.sectionName)
-            //     );
-            //   bothSections.vocals.fields.id = currentSongs.vocalsID;
-            //   bothSections.vocals.fields.keyScaleFactor =
-            //     currentSongs.vocalsKeyScaleFactor;
-            //   bothSections.vocals.fields.tempoScaleFactor =
-            //     currentSongs.vocalsTempoScaleFactor;
+              bothSections.accompaniment.fields.id =
+                currentSongs.accompanimentID;
+              bothSections.accompaniment.fields.sections =
+                bothSections.accompaniment.fields.sections.filter(
+                  (item: { [key: string]: string }) =>
+                    matchedAccompanimentSections.includes(item.sectionName)
+                );
+              bothSections.vocals.fields.id = currentSongs.vocalsID;
+              bothSections.vocals.fields.keyScaleFactor =
+                currentSongs.vocalsKeyScaleFactor;
+              bothSections.vocals.fields.tempoScaleFactor =
+                currentSongs.vocalsTempoScaleFactor;
 
-            //   normalizeInputsAndMix(
-            //     callback,
-            //     bothSections.accompaniment.fields,
-            //     bothSections.vocals.fields
-            //   );
-            // } else {
-            //   const alreadyExistsStatement = `The mashup with accompaniment track "${currentSongs.accompanimentTitle}" by ${currentSongs.accompanimentArtist} mixed with the vocal track "${currentSongs.vocalsTitle}" by ${currentSongs.vocalsArtist} already exists! Moving on to next mashup.`;
-
-            //   if (process.env.NODE_ENV === "production") {
-            //     logger("server").info(alreadyExistsStatement);
-            //   } else {
-            //     console.log(alreadyExistsStatement);
-            //   }
-            //   return callback(null, {
-            //     statusCode: 200,
-            //     body: JSON.stringify({
-            //       message: alreadyExistsStatement,
-            //     }),
-            //   });
-            // }
+              return await normalizeInputsAndMix(
+                bothSections.accompaniment.fields,
+                bothSections.vocals.fields
+              );
+            } else {
+              const alreadyExistsStatement = `The mashup with accompaniment track "${currentSongs.accompanimentTitle}" by ${currentSongs.accompanimentArtist} mixed with the vocal track "${currentSongs.vocalsTitle}" by ${currentSongs.vocalsArtist} already exists! Moving on to next mashup.`;
+              if (process.env.NODE_ENV === "production") {
+                logger("server").info(alreadyExistsStatement);
+              } else {
+                console.log(alreadyExistsStatement);
+              }
+              return alreadyExistsStatement;
+            }
           }
         } else {
           const missingEntryStatement = `Can't find one or both song entries when trying to create a mashup with accompaniment track "${currentSongs.accompanimentTitle}" by ${currentSongs.accompanimentArtist} and vocal track "${currentSongs.vocalsTitle}" by ${currentSongs.vocalsArtist}. Moving on to next mashup.`;

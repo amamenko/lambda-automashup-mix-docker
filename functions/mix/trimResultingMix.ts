@@ -6,11 +6,9 @@ import { addMixToContentful } from "../contentful/addMixToContentful";
 import { checkExistsAndDelete } from "../utils/checkExistsAndDelete";
 import { logger } from "../../logger/logger";
 import { SongObj } from "./normalizeInputsAndMix";
-import { APIGatewayProxyCallback } from "aws-lambda";
 import "dotenv/config";
 
 export const trimResultingMix = async (
-  callback: APIGatewayProxyCallback,
   instrumentals: SongObj,
   vocals: SongObj
 ) => {
@@ -58,106 +56,108 @@ export const trimResultingMix = async (
       const mainMixDuration = mixEnd - mixStart;
       const outroDelay = (introDuration + mainMixDuration) * 1000;
 
-      ffmpeg("original_mix.mp3")
-        .output("./trimmed_mix.mp3")
-        .complexFilter([
-          {
-            filter: `atrim=start=${introStartBeat}:end=${outroEnd}`,
-            inputs: "0:a",
-            outputs: "main_trim",
-          },
-          {
-            filter: "asetpts=PTS-STARTPTS",
-            inputs: "main_trim",
-            outputs: "main_0",
-          },
-          {
-            filter: "volume=4",
-            inputs: "main_0",
-            outputs: "main",
-          },
-          {
-            filter: `afade=t=out:st=${Number(outroEnd) - 10}:d=10`,
-            inputs: "main",
-            outputs: "main_fade_out",
-          },
-          {
-            filter: "loudnorm=tp=-9:i=-33",
-            inputs: "main_fade_out",
-            outputs: "main_normalized",
-          },
-          {
-            filter: `afade=t=in:st=0:d=${introDuration}`,
-            inputs: "main_normalized",
-          },
-        ])
-        .on("error", async (err, stdout, stderr) => {
-          const errorMessageStatement = `FFMPEG received an error. Terminating process. Output: `;
-          const stdErrStatement = "FFMPEG stderr:\n" + stderr;
+      const createTrimmedMix = () => {
+        return new Promise((resolve, reject) => {
+          ffmpeg("original_mix.mp3")
+            .output("./trimmed_mix.mp3")
+            .complexFilter([
+              {
+                filter: `atrim=start=${introStartBeat}:end=${outroEnd}`,
+                inputs: "0:a",
+                outputs: "main_trim",
+              },
+              {
+                filter: "asetpts=PTS-STARTPTS",
+                inputs: "main_trim",
+                outputs: "main_0",
+              },
+              {
+                filter: "volume=4",
+                inputs: "main_0",
+                outputs: "main",
+              },
+              {
+                filter: `afade=t=out:st=${Number(outroEnd) - 10}:d=10`,
+                inputs: "main",
+                outputs: "main_fade_out",
+              },
+              {
+                filter: "loudnorm=tp=-9:i=-33",
+                inputs: "main_fade_out",
+                outputs: "main_normalized",
+              },
+              {
+                filter: `afade=t=in:st=0:d=${introDuration}`,
+                inputs: "main_normalized",
+              },
+            ])
+            .on("error", async (err, stdout, stderr) => {
+              const errorMessageStatement = `FFMPEG received an error. Terminating process. Output: `;
+              const stdErrStatement = "FFMPEG stderr:\n" + stderr;
 
-          if (process.env.NODE_ENV === "production") {
-            logger("server").error(`${errorMessageStatement}: ${err.message}`);
-            logger("server").info(stdErrStatement);
-          } else {
-            console.error(`${errorMessageStatement} ${err.message}`);
-            console.log(stdErrStatement);
-          }
+              if (process.env.NODE_ENV === "production") {
+                logger("server").error(
+                  `${errorMessageStatement}: ${err.message}`
+                );
+                logger("server").info(stdErrStatement);
+              } else {
+                console.error(`${errorMessageStatement} ${err.message}`);
+                console.error(stdErrStatement);
+              }
 
-          await checkExistsAndDelete("./functions/mix/inputs");
-          await checkExistsAndDelete("original_mix.mp3");
-          await checkExistsAndDelete("trimmed_mix.mp3");
+              await checkExistsAndDelete("./functions/mix/inputs");
+              await checkExistsAndDelete("original_mix.mp3");
+              await checkExistsAndDelete("trimmed_mix.mp3");
 
-          return callback(null, {
-            statusCode: 404,
-            body: JSON.stringify({
-              message: `${errorMessageStatement} ${err.message}`,
-            }),
-          });
-        })
-        .on("end", async () => {
-          const successStatement = `\nDone in ${
-            (Date.now() - start) / 1000
-          }s\nSuccessfully trimmed original MP3 file.\nSaved to trimmed_mix.mp3.`;
+              reject(`${errorMessageStatement} ${err.message}`);
+              return `${errorMessageStatement} ${err.message}`;
+            })
+            .on("end", async () => {
+              const successStatement = `\nDone in ${
+                (Date.now() - start) / 1000
+              }s\nSuccessfully trimmed original MP3 file.\nSaved to trimmed_mix.mp3.`;
 
-          if (process.env.NODE_ENV === "production") {
-            logger("server").info(successStatement);
-          } else {
-            console.log(successStatement);
-          }
+              if (process.env.NODE_ENV === "production") {
+                logger("server").info(successStatement);
+              } else {
+                console.log(successStatement);
+              }
 
-          await checkExistsAndDelete("./functions/mix/inputs");
-          await checkExistsAndDelete("original_mix.mp3");
+              await checkExistsAndDelete("./functions/mix/inputs");
+              await checkExistsAndDelete("original_mix.mp3");
 
-          const mp3Duration = (await getAudioDurationInSeconds(
-            "trimmed_mix.mp3"
-          ).catch((err) => {
-            if (process.env.NODE_ENV === "production") {
-              logger("server").error(
-                `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`
-              );
-            } else {
-              console.error(err);
-            }
-            return callback(null, {
-              statusCode: 404,
-              body: JSON.stringify({
-                message: `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`,
-              }),
-            });
-          })) as number;
+              const mp3Duration = (await getAudioDurationInSeconds(
+                "trimmed_mix.mp3"
+              ).catch((err) => {
+                if (process.env.NODE_ENV === "production") {
+                  logger("server").error(
+                    `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`
+                  );
+                } else {
+                  console.error(err);
+                }
+                return `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`;
+              })) as number;
 
-          addMixToContentful(
-            callback,
+              resolve(mp3Duration);
+              return;
+            })
+            .run();
+        });
+      };
+      return await createTrimmedMix().then(async (mp3Duration: number) => {
+        if (typeof mp3Duration === "number") {
+          return await addMixToContentful(
             instrumentals,
             vocals,
             mp3Duration,
             introDuration,
             outroDelay / 1000
           );
-
-          return;
-        })
-        .run();
+        } else {
+          return mp3Duration;
+        }
+      });
     } else {
       const noSectionsAvailableStatement =
         "No instrumental sections available!";
@@ -168,12 +168,7 @@ export const trimResultingMix = async (
         console.log(noSectionsAvailableStatement);
       }
 
-      return callback(null, {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: noSectionsAvailableStatement,
-        }),
-      });
+      return noSectionsAvailableStatement;
     }
   } else {
     const noFileAvailableStatement =
@@ -185,11 +180,6 @@ export const trimResultingMix = async (
       console.log(noFileAvailableStatement);
     }
 
-    return callback(null, {
-      statusCode: 404,
-      body: JSON.stringify({
-        message: noFileAvailableStatement,
-      }),
-    });
+    return noFileAvailableStatement;
   }
 };
