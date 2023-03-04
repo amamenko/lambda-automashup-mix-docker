@@ -4,7 +4,6 @@ import { delayExecution } from "../utils/delayExecution";
 import { getUniqueOnly } from "../utils/getUniqueOnly";
 import { addMashupPositionValue } from "../contentful/addMashupPositionValue";
 import { updateMixLoopInProgress } from "../contentful/updateMixLoopInProgress";
-import { logger } from "../../logger/logger";
 import { getMixList } from "../contentful/getMixList";
 import { getMixSongEntries } from "../contentful/getMixSongEntries";
 import { getMashupEntries } from "../contentful/getMashupEntries";
@@ -13,11 +12,7 @@ import "dotenv/config";
 export const createMashup = async () => {
   const errorLog = (err: any) => {
     const errorStatement = `Received error when attempting to get individual song entries to create a new mashup entry: ${err}`;
-    if (process.env.NODE_ENV === "production") {
-      logger("server").error(errorStatement);
-    } else {
-      console.error(err);
-    }
+    console.error(err);
     return errorStatement;
   };
 
@@ -109,22 +104,13 @@ export const createMashup = async () => {
               );
             } else {
               const alreadyExistsStatement = `The mashup with accompaniment track "${currentSongs.accompanimentTitle}" by ${currentSongs.accompanimentArtist} mixed with the vocal track "${currentSongs.vocalsTitle}" by ${currentSongs.vocalsArtist} already exists! Moving on to next mashup.`;
-              if (process.env.NODE_ENV === "production") {
-                logger("server").info(alreadyExistsStatement);
-              } else {
-                console.log(alreadyExistsStatement);
-              }
+              console.log(alreadyExistsStatement);
               return alreadyExistsStatement;
             }
           }
         } else {
           const missingEntryStatement = `Can't find one or both song entries when trying to create a mashup with accompaniment track "${currentSongs.accompanimentTitle}" by ${currentSongs.accompanimentArtist} and vocal track "${currentSongs.vocalsTitle}" by ${currentSongs.vocalsArtist}. Moving on to next mashup.`;
-
-          if (process.env.NODE_ENV === "production") {
-            logger("server").info(missingEntryStatement);
-          } else {
-            console.log(missingEntryStatement);
-          }
+          console.log(missingEntryStatement);
           return missingEntryStatement;
         }
       } else {

@@ -4,7 +4,6 @@ import { getClosestBeatArr } from "./getClosestBeatArr";
 import { getAudioDurationInSeconds } from "get-audio-duration";
 import { addMixToContentful } from "../contentful/addMixToContentful";
 import { checkExistsAndDelete } from "../utils/checkExistsAndDelete";
-import { logger } from "../../logger/logger";
 import { SongObj } from "./normalizeInputsAndMix";
 import "dotenv/config";
 
@@ -94,16 +93,8 @@ export const trimResultingMix = async (
             .on("error", async (err, stdout, stderr) => {
               const errorMessageStatement = `FFMPEG received an error. Terminating process. Output: `;
               const stdErrStatement = "FFMPEG stderr:\n" + stderr;
-
-              if (process.env.NODE_ENV === "production") {
-                logger("server").error(
-                  `${errorMessageStatement}: ${err.message}`
-                );
-                logger("server").info(stdErrStatement);
-              } else {
-                console.error(`${errorMessageStatement} ${err.message}`);
-                console.error(stdErrStatement);
-              }
+              console.error(`${errorMessageStatement} ${err.message}`);
+              console.error(stdErrStatement);
 
               await checkExistsAndDelete("./functions/mix/inputs");
               await checkExistsAndDelete("original_mix.mp3");
@@ -116,12 +107,7 @@ export const trimResultingMix = async (
               const successStatement = `\nDone in ${
                 (Date.now() - start) / 1000
               }s\nSuccessfully trimmed original MP3 file.\nSaved to trimmed_mix.mp3.`;
-
-              if (process.env.NODE_ENV === "production") {
-                logger("server").info(successStatement);
-              } else {
-                console.log(successStatement);
-              }
+              console.log(successStatement);
 
               await checkExistsAndDelete("./functions/mix/inputs");
               await checkExistsAndDelete("original_mix.mp3");
@@ -129,14 +115,9 @@ export const trimResultingMix = async (
               const mp3Duration = (await getAudioDurationInSeconds(
                 "trimmed_mix.mp3"
               ).catch((err) => {
-                if (process.env.NODE_ENV === "production") {
-                  logger("server").error(
-                    `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`
-                  );
-                } else {
-                  console.error(err);
-                }
-                return `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`;
+                const errorStatement = `Received error when attempting to get audio duration of trimmed_mix.mp3 in seconds: ${err}`;
+                console.error(errorStatement);
+                return errorStatement;
               })) as number;
 
               resolve(mp3Duration);
@@ -162,25 +143,14 @@ export const trimResultingMix = async (
     } else {
       const noSectionsAvailableStatement =
         "No instrumental sections available!";
-
-      if (process.env.NODE_ENV === "production") {
-        logger("server").info(noSectionsAvailableStatement);
-      } else {
-        console.log(noSectionsAvailableStatement);
-      }
-
+      console.log(noSectionsAvailableStatement);
       return noSectionsAvailableStatement;
     }
   } else {
     const noFileAvailableStatement =
       "No original_mix.mp3 file available to trim!";
 
-    if (process.env.NODE_ENV === "production") {
-      logger("server").info(noFileAvailableStatement);
-    } else {
-      console.log(noFileAvailableStatement);
-    }
-
+    console.log(noFileAvailableStatement);
     return noFileAvailableStatement;
   }
 };

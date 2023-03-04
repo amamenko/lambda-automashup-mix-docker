@@ -1,5 +1,4 @@
 import { createClient } from "contentful-management";
-import { logger } from "../../logger/logger";
 import { getMostRecentSaturday } from "../utils/getMostRecentSaturday";
 import "dotenv/config";
 
@@ -15,13 +14,9 @@ export const updateMixLoopInProgress = async (
   const mostRecentSaturday = getMostRecentSaturday();
 
   const errorLog = (err: any) => {
-    if (process.env.NODE_ENV === "production") {
-      logger("server").error(
-        `Received error when attempting to update mix loop in progress: ${err}`
-      );
-    } else {
-      console.error(err);
-    }
+    console.error(
+      `Received error when attempting to update mix loop in progress: ${err}`
+    );
     return err;
   };
 
@@ -59,13 +54,7 @@ export const updateMixLoopInProgress = async (
                     } loop marked as ${
                       state === "in progress" ? "in progress." : "done."
                     }`;
-
-                    if (process.env.NODE_ENV === "production") {
-                      logger("server").info(successStatement);
-                    } else {
-                      console.log(successStatement);
-                    }
-
+                    console.log(successStatement);
                     return;
                   });
                 })

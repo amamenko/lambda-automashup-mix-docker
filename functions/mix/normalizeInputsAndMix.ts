@@ -2,7 +2,6 @@ import fs from "fs";
 import axios from "axios";
 import { mixTracks } from "./mixTracks";
 import { delayExecution } from "../utils/delayExecution";
-import { logger } from "../../logger/logger";
 import { getAssetUrl } from "../contentful/getAsset";
 import "dotenv/config";
 
@@ -54,12 +53,17 @@ export const normalizeInputsAndMix = async (
       const accompanimentURL = "https:" + accompanimentLink;
       const voxURL = "https:" + voxLink;
 
-      if (!fs.existsSync("./functions/mix/inputs")) {
-        fs.mkdirSync("./functions/mix/inputs");
+      const INPUTS_DIR =
+        process.env.NODE_ENV === "production"
+          ? "./tmp/inputs"
+          : "./functions/mix/inputs";
+
+      if (!fs.existsSync(INPUTS_DIR)) {
+        fs.mkdirSync(INPUTS_DIR);
       }
 
-      const accompanimentPath = "./functions/mix/inputs/accompaniment.mp3";
-      const voxPath = "./functions/mix/inputs/vox.mp3";
+      const accompanimentPath = `${INPUTS_DIR}/accompaniment.mp3`;
+      const voxPath = `${INPUTS_DIR}/vox.mp3`;
 
       const streamArr = [
         {
@@ -88,21 +92,13 @@ export const normalizeInputsAndMix = async (
         response.data.on("error", (err: any) => {
           const errorStatement =
             "Received an error when attempting to download song entry audio. Terminating process. Output: ";
-          if (process.env.NODE_ENV === "production") {
-            logger("server").error(`${errorStatement}: ${err}`);
-          } else {
-            console.error(errorStatement + err);
-          }
+          console.error(errorStatement + err);
           return `${errorStatement}${err}`;
         });
 
         response.data.on("end", () => {
           const finishStatement = `Successfully downloaded song entry ${file.name} audio from ${file.url} to ${file.path}.`;
-          if (process.env.NODE_ENV === "production") {
-            logger("server").info(finishStatement);
-          } else {
-            console.log(finishStatement);
-          }
+          console.log(finishStatement);
         });
       }
 

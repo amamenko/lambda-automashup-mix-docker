@@ -3,7 +3,6 @@ import ffmpeg from "fluent-ffmpeg";
 import { createComplexFilter } from "./createComplexFilter";
 import { checkFileExists } from "../utils/checkFileExists";
 import { trimResultingMix } from "./trimResultingMix";
-import { logger } from "../../logger/logger";
 import { SongObj } from "./normalizeInputsAndMix";
 import "dotenv/config";
 
@@ -37,16 +36,8 @@ export const mixTracks = async (
           .on("error", async (err, stdout, stderr) => {
             const errorMessageStatement = `FFMPEG received an error when attempting to mix the instrumentals of the track "${instrumentals.title}" by ${instrumentals.artist} with the vocals of the track "${vox.title}" by ${vox.artist}. Terminating process. Output: `;
             const stdErrStatement = "FFMPEG stderr:\n" + stderr;
-
-            if (process.env.NODE_ENV === "production") {
-              logger("server").error(
-                `${errorMessageStatement}: ${err.message}`
-              );
-              logger("server").info(stdErrStatement);
-            } else {
-              console.error(`${errorMessageStatement} ${err.message}`);
-              console.log(stdErrStatement);
-            }
+            console.error(`${errorMessageStatement} ${err.message}`);
+            console.log(stdErrStatement);
 
             const inputsExists = await checkFileExists(
               "./functions/mix/inputs"
@@ -65,12 +56,7 @@ export const mixTracks = async (
                 () => {
                   const leftoverDeletedStatement =
                     "Audio MP3 inputs directory deleted!";
-
-                  if (process.env.NODE_ENV === "production") {
-                    logger("server").info(leftoverDeletedStatement);
-                  } else {
-                    console.log(leftoverDeletedStatement);
-                  }
+                  console.log(leftoverDeletedStatement);
                 }
               );
             }
@@ -85,12 +71,7 @@ export const mixTracks = async (
                 () => {
                   const leftoverDeletedStatement =
                     "Leftover output MP3 file deleted!";
-
-                  if (process.env.NODE_ENV === "production") {
-                    logger("server").info(leftoverDeletedStatement);
-                  } else {
-                    console.log(leftoverDeletedStatement);
-                  }
+                  console.log(leftoverDeletedStatement);
                 }
               );
             }
@@ -106,11 +87,7 @@ export const mixTracks = async (
               vox.title
             }" by ${vox.artist}.\nSaved to original_mix.mp3.`;
 
-            if (process.env.NODE_ENV === "production") {
-              logger("server").info(doneStatement);
-            } else {
-              console.log(doneStatement);
-            }
+            console.log(doneStatement);
             resolve(doneStatement);
 
             return;
@@ -123,13 +100,7 @@ export const mixTracks = async (
     );
   } else {
     const noComplexFilterStatement = `No complex filter provided! Can't mix the instrumentals of the track "${instrumentals.title}" by ${instrumentals.artist} with the vocals of the track "${vox.title}" by ${vox.artist}. Moving on to next mix.`;
-
-    if (process.env.NODE_ENV === "production") {
-      logger("server").info(noComplexFilterStatement);
-    } else {
-      console.log(noComplexFilterStatement);
-    }
-
+    console.log(noComplexFilterStatement);
     return noComplexFilterStatement;
   }
 };

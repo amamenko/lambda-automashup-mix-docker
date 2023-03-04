@@ -1,6 +1,5 @@
-const fs = require("fs");
-const { checkFileExists } = require("./checkFileExists");
-import { logger } from "../../logger/logger";
+import fs from "fs";
+import { checkFileExists } from "./checkFileExists";
 import "dotenv/config";
 
 export const checkExistsAndDelete = async (filename: string) => {
@@ -15,12 +14,7 @@ export const checkExistsAndDelete = async (filename: string) => {
       },
       () => {
         const deletedStatement = `${filename} file deleted!`;
-
-        if (process.env.NODE_ENV === "production") {
-          logger("server").info(deletedStatement);
-        } else {
-          console.log(deletedStatement);
-        }
+        console.log(deletedStatement);
       }
     );
   }

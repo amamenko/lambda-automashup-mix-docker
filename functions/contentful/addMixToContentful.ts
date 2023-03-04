@@ -1,7 +1,6 @@
 import fs from "fs";
 import { checkFileExists } from "../utils/checkFileExists";
 import { createClient } from "contentful-management";
-import { logger } from "../../logger/logger";
 import "dotenv/config";
 
 interface SongObj {
@@ -35,12 +34,7 @@ export const addMixToContentful = async (
         },
         () => {
           const leftoverDeletedStatement = "Leftover trimmed_mix file deleted!";
-
-          if (process.env.NODE_ENV === "production") {
-            logger("server").info(leftoverDeletedStatement);
-          } else {
-            console.log(leftoverDeletedStatement);
-          }
+          console.log(leftoverDeletedStatement);
         }
       );
     }
@@ -72,13 +66,7 @@ export const addMixToContentful = async (
       )}" by ${truncateString(vocalsArtist)}`;
 
       const getErrorLogs = (err: any) => {
-        if (process.env.NODE_ENV === "production") {
-          logger("server").error(
-            `Received error during entry creation: ${err}`
-          );
-        } else {
-          console.error(`Received error during entry creation: ${err}`);
-        }
+        console.error(`Received error during entry creation: ${err}`);
       };
 
       return await client
@@ -174,11 +162,7 @@ export const addMixToContentful = async (
                       const successStatement =
                         "Successfully created new mashup entry!";
 
-                      if (process.env.NODE_ENV === "production") {
-                        logger("server").info(successStatement);
-                      } else {
-                        console.log(successStatement);
-                      }
+                      console.log(successStatement);
                       return successStatement;
                     })
                     .catch((err) => {
@@ -203,22 +187,13 @@ export const addMixToContentful = async (
       const doesntExistStatement =
         "Mashup mp3 audio does not exist! Moving on to next mashup.";
 
-      if (process.env.NODE_ENV === "production") {
-        logger("server").info(doesntExistStatement);
-      } else {
-        console.log(doesntExistStatement);
-      }
+      console.log(doesntExistStatement);
       return doesntExistStatement;
     }
   } else {
     const doesntExistStatement =
       "Both accompaniment and vocals parameters are required in the addMixToContentful.js function! Aborting process and moving on to next mashup.";
-
-    if (process.env.NODE_ENV === "production") {
-      logger("server").info(doesntExistStatement);
-    } else {
-      console.log(doesntExistStatement);
-    }
+    console.log(doesntExistStatement);
     return doesntExistStatement;
   }
 };

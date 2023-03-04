@@ -11,7 +11,6 @@ COPY package.json /var/linux-arm64/package.json
 COPY package.json ./
 COPY --from=builder /usr/app/dist/app.js ./
 COPY --from=builder /usr/app/dist/functions ./functions
-COPY --from=builder /usr/app/dist/logger ./logger
 RUN npm i
 RUN yum -y update && yum -y install tar xz
 # Install ffmpeg
