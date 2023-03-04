@@ -14,7 +14,6 @@
     "@logdna/logger": "^2.6.0",
     "aws-lambda": "^1.0.7",
     "axios": "^0.24.0",
-    "contentful": "^9.1.5",
     "contentful-management": "^7.45.7",
     "date-fns": "^2.27.0",
     "dotenv": "^10.0.0",
