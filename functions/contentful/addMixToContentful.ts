@@ -140,8 +140,7 @@ export const addMixToContentful = async (
                   .then(async (entry) => {
                     await entry.publish();
 
-                    const successStatement =
-                      "Successfully created new mashup entry!";
+                    const successStatement = `Successfully created new mashup entry! Mixed the accompaniment track "${accompanimentTitle}" by ${accompanimentArtist} with the vocals track "${vocalsTitle}" by ${vocalsArtist}.`;
 
                     console.log(successStatement);
                     return successStatement;
